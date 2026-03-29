@@ -258,6 +258,8 @@ public final class SistemaBiblioteca {
             g.crearPrestamo(1, List.of(13L, 14L));
         } catch (ReglasBibliotecaException e) {
             throw new IllegalStateException("Datos demo préstamos", e);
+        } finally {
+            System.out.flush();
         }
 
         System.out.println("(Inventario demo cargado: 4 lectores, 40 libros, 5 préstamos.)\n");
