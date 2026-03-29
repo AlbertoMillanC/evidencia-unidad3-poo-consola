@@ -20,7 +20,7 @@ import java.util.Scanner;
  *     <li>{@link GestorBiblioteca}: Singleton manual + listas en memoria</li>
  *     <li>{@link FabricaRecursosBiblioteca}: creación de libros / revistas</li>
  *     <li>Streams en el gestor y reportes desde el menú</li>
- *     <li>{@code try-catch-finally} en la lectura del menú para no caer ante entradas inválidas</li>
+ *     <li>Validación de entradas: {@code try-catch} y {@link ReglasBibliotecaException} sin cerrar el programa</li>
  * </ul>
  */
 public final class SistemaBiblioteca {
@@ -44,9 +44,6 @@ public final class SistemaBiblioteca {
                 } catch (NumberFormatException ex) {
                     System.out.println(">>> Ingrese solo el número de la opción. Intente de nuevo.\n");
                     continue;
-                } finally {
-                    /* La evidencia pide finally: aquí no hay recursos que cerrar por opción, pero el bloque
-                       deja explícito que el ciclo sigue vivo y el Scanner se cierra al salir del try-with-resources. */
                 }
 
                 try {
@@ -144,11 +141,8 @@ public final class SistemaBiblioteca {
                 return false;
             }
             case 7 -> {
-                System.out.print("Id lector: ");
-                long lid = Long.parseLong(sc.nextLine().trim());
-                System.out.print("Ids recursos (separados por coma, ej. 1,3,5): ");
-                String linea = sc.nextLine();
-                List<Long> rids = parsearIds(linea);
+                long lid = leerLong(sc, "Id lector: ");
+                List<Long> rids = leerListaIdsRecursos(sc, "Ids recursos (separados por coma, ej. 1,3,5): ");
                 sistema.crearPrestamo(lid, rids);
                 System.out.println("Préstamo registrado.\n");
                 return false;
@@ -190,16 +184,36 @@ public final class SistemaBiblioteca {
         }
     }
 
-    private static List<Long> parsearIds(String linea) {
-        List<Long> out = new ArrayList<>();
-        if (linea == null || linea.isBlank()) {
-            return out;
+    private static long leerLong(Scanner sc, String etiqueta) throws ReglasBibliotecaException {
+        System.out.print(etiqueta);
+        String s = sc.nextLine();
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            throw new ReglasBibliotecaException("Se esperaba un número entero; se recibió: \"" + s + "\".");
         }
+    }
+
+    private static List<Long> leerListaIdsRecursos(Scanner sc, String etiqueta) throws ReglasBibliotecaException {
+        System.out.print(etiqueta);
+        String linea = sc.nextLine();
+        if (linea == null || linea.isBlank()) {
+            throw new ReglasBibliotecaException("Debe indicar al menos un id de recurso.");
+        }
+        List<Long> out = new ArrayList<>();
         for (String p : linea.split(",")) {
             String t = p.trim();
-            if (!t.isEmpty()) {
-                out.add(Long.parseLong(t));
+            if (t.isEmpty()) {
+                continue;
             }
+            try {
+                out.add(Long.parseLong(t));
+            } catch (NumberFormatException e) {
+                throw new ReglasBibliotecaException("Id de recurso inválido: \"" + t + "\".");
+            }
+        }
+        if (out.isEmpty()) {
+            throw new ReglasBibliotecaException("Debe indicar al menos un id de recurso (números separados por coma).");
         }
         return out;
     }

@@ -1,6 +1,7 @@
 package edu.iudigital.unidad3.poo.biblioteca.gestor;
 
 import edu.iudigital.unidad3.poo.biblioteca.modelo.Lector;
+import edu.iudigital.unidad3.poo.biblioteca.modelo.Libro;
 import edu.iudigital.unidad3.poo.biblioteca.modelo.LineaPrestamo;
 import edu.iudigital.unidad3.poo.biblioteca.modelo.Prestamo;
 import edu.iudigital.unidad3.poo.biblioteca.modelo.Recurso;
@@ -10,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.stream.Collectors;
 
@@ -47,13 +47,6 @@ public final class GestorBiblioteca {
             instancia = new GestorBiblioteca();
         }
         return instancia;
-    }
-
-    /**
-     * Solo para pruebas: reinicia el Singleton (no usar en producción real).
-     */
-    static synchronized void reiniciarParaPruebas() {
-        instancia = null;
     }
 
     public List<Lector> getLectores() {
@@ -144,14 +137,6 @@ public final class GestorBiblioteca {
         prestamos.add(p);
     }
 
-    /** Programación funcional: lectores ordenados por nombre. */
-    public List<String> nombresLectoresOrdenados() {
-        return lectores.stream()
-                .map(Lector::getNombreCompleto)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
-                .collect(Collectors.toList());
-    }
-
     /** Streams: títulos de recursos aún disponibles. */
     public List<String> titulosDisponibles() {
         return inventario.stream()
@@ -170,17 +155,9 @@ public final class GestorBiblioteca {
 
     public long contarLibrosDisponibles() {
         return inventario.stream()
-                .filter(r -> r instanceof edu.iudigital.unidad3.poo.biblioteca.modelo.Libro)
+                .filter(r -> r instanceof Libro)
                 .filter(Recurso::isDisponible)
                 .count();
-    }
-
-    public Optional<Lector> buscarLectorPorId(long id) {
-        return lectores.stream().filter(l -> l.getId() == id).findFirst();
-    }
-
-    public Optional<Recurso> buscarRecursoPorId(long id) {
-        return inventario.stream().filter(r -> r.getId() == id).findFirst();
     }
 
     public void listarInventarioOrdenadoPorTipo() {
